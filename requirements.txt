@@ -1,0 +1,6 @@
+Flask~=2.2.3
+flask_mongoengine
+python-dotenv
+requests
+praw # python reddit api wrapper
+beautifulsoup4

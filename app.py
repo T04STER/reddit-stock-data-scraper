@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.config['MONGODB_SETTINGS'] = {
     'db': 'xd',  # TODO
     'host': 'localhost',
-    'port': 2137
+    'port': 1337
 }
 
 db = MongoEngine()
@@ -16,7 +16,7 @@ db.init_app(app)
 
 @app.route('/')
 def hello_world():  # put application's code here
-    return f"{REDDIT_SECRET}"
+    return f""
 
 
 if __name__ == '__main__':

@@ -1,15 +1,18 @@
 import logging
 import re
+from typing import Optional, Dict, SupportsIndex
 
 import bs4
 import requests
+
+from models.Stock import Stock
 
 
 class YahooFinanceScrapper:
     __url = r'https://finance.yahoo.com/quote/'
 
-    def scrap_stock_data(self, ticker):
-        stock_dict = {}
+    def scrap_stock_data(self, ticker) -> Optional[Stock]:
+        stock_dict = {"ticker": ticker}
         ticker_url = f'{self.__url}{ticker}/'
         response = requests.get(ticker_url)
         soup = bs4.BeautifulSoup(response.text, 'html.parser')
@@ -28,7 +31,12 @@ class YahooFinanceScrapper:
 
         summary_table_div = soup.find('div', {'data-test': 'left-summary-table'})
         table_data = self.__get_data_from_table(summary_table_div)
-    def __get_company_name(self, title, ticker):
+        stock_dict.update(table_data)
+        print(stock_dict)
+        stock = Stock(**stock_dict)
+        print(stock)
+
+    def __get_company_name(self, title: str, ticker: str) -> Optional[str]:
         pattern = f'(.*?) \\({ticker}\\)'
         match = re.search(pattern, title)
         if match is None:
@@ -36,20 +44,20 @@ class YahooFinanceScrapper:
         else:
             return match.group(1)
 
-    def __get_data_from_header(self, header_div):
+    def __get_data_from_header(self, header_div: str) -> Dict:
         stock_price = self.__get_atribute_from_header(header_div, 'regularMarketPrice')
         stock_change = self.__get_atribute_from_header(header_div, 'regularMarketPrice')
         stock_change_percent = self.__get_atribute_from_header(header_div, 'regularMarketChangePercent')
         return {
-            'stock_price': float(stock_price),
-            'stock_change': float(stock_change),
-            'stock_change_percent': stock_change_percent
+            'price': float(stock_price),
+            'change': float(stock_change),
+            'change_percent': stock_change_percent
         }
 
     def __get_atribute_from_header(self, header_div, data_field):
         stock_pattern = {'data-field': data_field}
         stock_data_div = header_div.find('fin-streamer', stock_pattern)
-        return stock_data_div.text()
+        return stock_data_div.text
 
     def __get_data_from_table(self, summary_table):
         # TODO

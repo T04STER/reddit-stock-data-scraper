@@ -10,7 +10,7 @@ from praw.models.comment_forest import CommentForest
 class RedditScrapper:
     __ticker_symbol_pattern = r' ([A-Z]{3,7}) '
 
-    def __init__(self, reddit_client: Reddit, subreddits: List[str], posts_limit=100):
+    def __init__(self, reddit_client: Reddit, subreddits: List[str], posts_limit: int=100):
         self.reddit_client = reddit_client
         self.subreddits = subreddits
         self.posts_limit = posts_limit

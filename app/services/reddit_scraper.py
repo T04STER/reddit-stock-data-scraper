@@ -1,30 +1,31 @@
 import logging
 import re
 from collections import Counter
-from typing import List
+from typing import List, Pattern
 from praw import Reddit
 from praw.models import ListingGenerator, Submission
 from praw.models.comment_forest import CommentForest
 
 
-class RedditScrapper:
+class RedditScraper:
     __ticker_symbol_pattern = r' ([A-Z]{3,7}) '
 
-    def __init__(self, reddit_client: Reddit, subreddits: List[str], posts_limit: int=100):
-        self.reddit_client = reddit_client
-        self.subreddits = subreddits
-        self.posts_limit = posts_limit
-        self.complied_regex = re.compile(self.__ticker_symbol_pattern)
+    def __init__(self, reddit_client: Reddit, subreddits: List[str], posts_per_request: int = 100):
+        self.reddit_client: Reddit = reddit_client
+        self.subreddits: List[str] = subreddits
+        self.posts_per_request: int = posts_per_request
+        self.complied_regex: Pattern[str] = re.compile(self.__ticker_symbol_pattern)
 
-    def scrap(self):
+    def scrap(self) -> List:
         logging.info('Scrapping reddit started')
         ticker_count_dicts = [self.__scrap_subreddit(subreddit) for subreddit in self.subreddits]
-        ticker_counter = sum(ticker_count_dicts)
-        return ticker_counter
+        merged_counter = Counter()
+        for counter in ticker_count_dicts:
+            merged_counter.update(counter)
+        return merged_counter.most_common()
 
     def __scrap_subreddit(self, subreddit_name) -> Counter:
-
-        submissions: ListingGenerator = self.reddit_client.subreddit(subreddit_name).hot(limit=self.posts_limit)
+        submissions: ListingGenerator = self.reddit_client.subreddit(subreddit_name).top(limit=self.posts_per_request)
 
         ticker_symbol_counter = Counter()
 

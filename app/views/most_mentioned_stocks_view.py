@@ -8,6 +8,7 @@ from services.stock_service import StockService
 
 class MostMentionedStockView(View):
     methods = ['GET']
+
     def __init__(self, stock_service: StockService):
         self.__stock_service = stock_service
 

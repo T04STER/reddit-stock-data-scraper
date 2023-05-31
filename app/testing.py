@@ -4,5 +4,5 @@ from services.scrap_service import ScrapService
 from services.yahoo_finance_scraper import YahooFinanceScraper
 
 yfs = YahooFinanceScraper()
-gme = yfs.scrap_stock_data('CNBC')
-print(gme)
+gme = yfs.scrap_stock_data('GME')
+print(repr(gme))

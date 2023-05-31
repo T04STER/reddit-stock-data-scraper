@@ -26,5 +26,16 @@ class StockService:
         return stock
 
     def get_most_viewed_stocks(self):
-        stocks = Stock.objects.order_by('mention_counter').limit(10)
+        select_params = {
+            'ticker': 1,
+            'mention_counter': 1,
+            'company_name': 1,
+            'price': 1,
+            'change': 1,
+            'change_percent': 1,
+            'open_price': 1,
+            'previous_close': 1,
+            'volume': 1,
+        }
+        stocks = Stock.objects.only(*select_params).order_by('-mention_counter').limit(10)
         return stocks

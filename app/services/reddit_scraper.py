@@ -1,7 +1,7 @@
 import logging
 import re
 from collections import Counter
-from typing import List, Pattern
+from typing import List, Pattern, Tuple
 from praw import Reddit
 from praw.models import ListingGenerator, Submission
 from praw.models.comment_forest import CommentForest
@@ -16,9 +16,9 @@ class RedditScraper:
         self.posts_per_request: int = posts_per_request
         self.complied_regex: Pattern[str] = re.compile(self.__ticker_symbol_pattern)
 
-    def scrap(self) -> List:
+    def scrap(self) -> List[Tuple[str, int]]:
         logging.info('Scrapping reddit started')
-        ticker_count_dicts = [self.__scrap_subreddit(subreddit) for subreddit in self.subreddits]
+        ticker_count_dicts: List[Counter] = [self.__scrap_subreddit(subreddit) for subreddit in self.subreddits]
         merged_counter = Counter()
         for counter in ticker_count_dicts:
             merged_counter.update(counter)
@@ -44,7 +44,7 @@ class RedditScraper:
             ticker_counter[ticker] += 1
         return ticker_counter
 
-    def __get_tickers_from_comments(self, comments: CommentForest):
+    def __get_tickers_from_comments(self, comments: CommentForest) -> Counter:
         ticker_counter = Counter()
         for comment in comments.list():
             comment_submission = comment.submission

@@ -6,12 +6,11 @@ from flask_mongoengine import MongoEngine
 
 from configs import reddit_scraper_config, yahoo_scraper_config, aps_scheduler_config
 from dot_env_loader import MONGODB_DATABASE, MONGODB_HOSTNAME, MONGODB_USERNAME, MONGODB_PASSWORD
-from models import Stock
 from services.scrap_service import ScrapService
 from services.stock_service import StockService
 from views.most_mentioned_stocks_view import MostMentionedStockView
 from views.stock_view import StockView
-
+from flask_cors import CORS
 db = MongoEngine()
 app = Flask(__name__)
 app.config["MONGODB_SETTINGS"] = [
@@ -25,7 +24,7 @@ app.config["MONGODB_SETTINGS"] = [
         "password": MONGODB_PASSWORD
     }
 ]
-
+CORS(app)
 reddit_scraper = reddit_scraper_config()
 yahoo_scrapper = yahoo_scraper_config()
 stock_service = StockService(yahoo_scraper_config())
@@ -33,9 +32,9 @@ scrap_service = ScrapService(reddit_scraper, yahoo_scrapper)
 aps_scheduler_config(scrap_service)
 logging.getLogger('apscheduler').setLevel(logging.DEBUG)
 
-app.add_url_rule('/api/v1/stock/<ticker>', view_func=StockView.as_view('stock_view', stock_service))
+app.add_url_rule('/api/v1/stocks/<ticker>', view_func=StockView.as_view('stock_view', stock_service))
 app.add_url_rule(
-    '/api/v1/stock/',
+    '/api/v1/stocks/',
     view_func=MostMentionedStockView.as_view('most_mentioned_stocks_view', stock_service)
     )
 

@@ -1,6 +1,4 @@
-import logging
 from typing import List
-
 from models import Stock
 from models.stock_history_element import StockHistoryElement
 from services.reddit_scraper import RedditScraper
@@ -12,9 +10,9 @@ class ScrapService:
         self.__reddit_scraper: RedditScraper = reddit_scraper
         self.__yahoo_finance_scraper: YahooFinanceScraper = yahoo_finance_scraper
 
-    def insert_most_mentioned_stocks(self):
+    def insert_most_mentioned_stocks(self) -> None:
         most_mentioned: List = self.__reddit_scraper.scrap()
-        stocks = self.__scrap_stock_data(most_mentioned)
+        stocks = self.__scrap_stocks_data(most_mentioned)
         for stock in stocks:
             existing_stock = Stock.objects(ticker=stock.ticker)
             if existing_stock is not None:
@@ -31,9 +29,7 @@ class ScrapService:
             else:
                 stock.save()
 
-
-
-    def update_stock_data(self):
+    def update_stock_data(self) -> None:
         for stock in Stock.objects:
             new_stock = self.__yahoo_finance_scraper.scrap_stock_data(stock.ticker)
             if new_stock is not None:
@@ -51,8 +47,8 @@ class ScrapService:
                     stock_history=new_stock.stock_history
                 )
 
-    def __scrap_stock_data(self, most_mentioned: List):
-        stocks = []
+    def __scrap_stocks_data(self, most_mentioned: List) -> List[Stock]:
+        stocks = list()
         for (ticker, mentions) in most_mentioned:
             stock = self.__yahoo_finance_scraper.scrap_stock_data(ticker)
             if stock is not None:

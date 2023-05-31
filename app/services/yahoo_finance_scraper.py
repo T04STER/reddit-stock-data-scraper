@@ -3,7 +3,7 @@ import io
 import logging
 import re
 from http import HTTPStatus
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 import bs4
 import requests
 
@@ -23,12 +23,11 @@ class YahooFinanceScraper:
         stock_dict = {"ticker": ticker}
         ticker_url = f'{self.__url}{ticker}/'
         response = requests.get(ticker_url, headers=self.__headers)
-
-        soup = bs4.BeautifulSoup(response.text, 'html.parser')
-
         if response.status_code != HTTPStatus.OK:
             logging.warning(f"Request status {response.status_code}")
             return None
+
+        soup = bs4.BeautifulSoup(response.text, 'html.parser')
 
         title = soup.title.string
         company_name = self.__get_company_name(title, ticker)
@@ -44,6 +43,7 @@ class YahooFinanceScraper:
         stock_dict.update(header_data)
 
         summary_table_div = soup.find('div', {'data-test': 'left-summary-table'})
+
         table_data = self.__get_data_from_table(summary_table_div)
         stock_dict.update(table_data)
         return Stock(**stock_dict)
@@ -56,26 +56,68 @@ class YahooFinanceScraper:
         else:
             return match.group(1)
 
-    def __get_data_from_header(self, header_div: str) -> Dict:
-        stock_price = self.__get_atribute_from_header(header_div, 'regularMarketPrice')
-        stock_change = self.__get_atribute_from_header(header_div, 'regularMarketPrice')
-        stock_change_percent = self.__get_atribute_from_header(header_div, 'regularMarketChangePercent')
+    def __get_data_from_header(self, header_div) -> Dict:
+        stock_price = self.__extract_value_in_fin_streamer(header_div, 'regularMarketPrice')
+        stock_change = self.__extract_value_in_fin_streamer(header_div, 'regularMarketChange')
+        stock_change_percent = self.__extract_value_in_fin_streamer(header_div, 'regularMarketChangePercent')
+        if stock_change_percent is not None:
+            stock_change_percent *= 100
+
         return {
-            'price': float(stock_price),
-            'change': float(stock_change),
-            'change_percent': float(stock_change_percent)*100
+            'price': stock_price,
+            'change': stock_change,
+            'change_percent': stock_change_percent
         }
 
-    def __get_atribute_from_header(self, header_div, data_field):
-        stock_pattern = {'data-field': data_field}
-        stock_data_div = header_div.find('fin-streamer', stock_pattern)
-        print(stock_data_div)
+    def __extract_value_in_fin_streamer(self, header_div, data_field) -> Optional[Union[int, float]]:
+        data_field_pattern = {'data-field': data_field}
+        fin_streamer = header_div.find('fin-streamer', data_field_pattern)
 
-        return stock_data_div.get('value', 0)
+        if fin_streamer is None:
+            return None
+        value = fin_streamer.get('value')
+        value = self.__parse_to_number(value)
+        return value
 
-    def __get_data_from_table(self, summary_table):
-        # TODO:
-        return {}
+    def __get_data_from_table(self, summary_table) -> Dict:
+        # TODO!!!: TEST IT!!!
+        table_cell = 'td'
+
+        open_price_search_param = {'data-test': 'OPEN-value'}
+        open_price = self.__extract_number_from_div(summary_table, table_cell, open_price_search_param)
+
+        prev_close_search_param = {'data-test': 'PREV_CLOSE-value'}
+        previous_close = self.__extract_number_from_div(summary_table, table_cell, prev_close_search_param)
+
+        volume = self.__extract_value_in_fin_streamer(summary_table, 'regularMarketVolume')
+
+        return {
+            'open_price': open_price,
+            'previous_close': previous_close,
+            'volume': volume
+        }
+
+    def __extract_number_from_div(self, div, value_container_name, search_param) -> Optional[Union[int, float]]:
+        element_container = div.find(value_container_name, search_param)
+        if element_container is None:
+            return None
+
+        element = element_container.text
+        return self.__parse_to_number(element)
+
+    def __parse_to_number(self, text) -> Optional[Union[int, float]]:
+        text = text.replace(',', '')
+        only_digit_text = text.replace('.', '')
+        if only_digit_text[0] == '-':
+            only_digit_text = only_digit_text[1:]
+
+        if not only_digit_text.isdigit():
+            return None
+
+        if text == only_digit_text:
+            return int(text)
+        else:
+            return float(text)
 
     def scrap_history(self, ticker: str) -> List[StockHistoryElement]:
         ticker_url: str = self.__history_url.format(ticker)
@@ -85,8 +127,8 @@ class YahooFinanceScraper:
             return list()
 
         soup = bs4.BeautifulSoup(response.text, 'html.parser')
-        print(ticker_url)
-        download = soup.find("a", {"download": f"{ticker}.csv"})
+
+        download = soup.find('a', {'download': f"{ticker}.csv"})
         download_url = download.get('href')
         response_csv = requests.get(download_url, headers=self.__headers)
 

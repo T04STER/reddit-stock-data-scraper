@@ -1,0 +1,32 @@
+
+.StockPage {
+    width: 80%;
+    margin-top: 10px;
+    font-size: large;
+    border-radius: 10px;
+    background-color: white;
+    color: black;
+    display: flex;
+    text-align: left;
+    .data-container {
+        margin: 1rem;
+        width: 35%;
+
+        div {
+            margin-top: 10px;
+            div {
+                display: inline;
+            }
+        }
+    }
+    
+}
+
+.div-error {
+    margin: 1rem;
+    text-align: center;
+    width: 100%;
+    background-color: #ff3f3f;
+    border-radius: 50px;
+    padding: 20px;
+}

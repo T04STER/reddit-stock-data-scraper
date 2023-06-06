@@ -34,7 +34,10 @@ export default class StockProvider {
                     });
                     return stocks
                 })
-                .catch((err) => console.log(err));
+                .catch((err) => {
+                    console.log(err);
+                    return [];
+                })
         return stocks;
     }
 

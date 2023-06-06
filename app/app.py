@@ -11,32 +11,37 @@ from services.stock_service import StockService
 from views.most_mentioned_stocks_view import MostMentionedStockView
 from views.stock_view import StockView
 from flask_cors import CORS
-db = MongoEngine()
-app = Flask(__name__)
-app.config["MONGODB_SETTINGS"] = [
-    {
-        "db": MONGODB_DATABASE,
-        "authentication_source": MONGODB_DATABASE,
-        "host": "localhost", #TODO: Change host on docker
-        "port": 27017,
-        "alias": "default",
-        "username": MONGODB_USERNAME,
-        "password": MONGODB_PASSWORD
-    }
-]
-CORS(app)
-reddit_scraper = reddit_scraper_config()
-yahoo_scrapper = yahoo_scraper_config()
-stock_service = StockService(yahoo_scraper_config())
-scrap_service = ScrapService(reddit_scraper, yahoo_scrapper)
-aps_scheduler_config(scrap_service)
-logging.getLogger('apscheduler').setLevel(logging.DEBUG)
 
-app.add_url_rule('/api/v1/stocks/<ticker>', view_func=StockView.as_view('stock_view', stock_service))
-app.add_url_rule(
-    '/api/v1/stocks/',
-    view_func=MostMentionedStockView.as_view('most_mentioned_stocks_view', stock_service)
+
+def init_app():
+    app = Flask(__name__)
+    app.config["MONGODB_SETTINGS"] = [
+        {
+            "db": MONGODB_DATABASE,
+            "authentication_source": MONGODB_DATABASE,
+            "host": MONGODB_HOSTNAME,
+            "port": 27017,
+            "alias": "default",
+            "username": MONGODB_USERNAME,
+            "password": MONGODB_PASSWORD
+        }
+    ]
+    CORS(app, resources={r"/*": {"origins": "*"}}, headers={"Referrer-Policy": "strict-origin-when-cross-origin"})
+    reddit_scraper = reddit_scraper_config()
+    yahoo_scrapper = yahoo_scraper_config()
+    stock_service = StockService(yahoo_scraper_config())
+    scrap_service = ScrapService(reddit_scraper, yahoo_scrapper)
+    aps_scheduler_config(scrap_service)
+
+    app.add_url_rule('/api/v1/stocks/<ticker>', view_func=StockView.as_view('stock_view', stock_service))
+    app.add_url_rule(
+        '/api/v1/stocks/',
+        view_func=MostMentionedStockView.as_view('most_mentioned_stocks_view', stock_service)
     )
+    return app
 
+
+db = MongoEngine()
+app = init_app()
 db.init_app(app)
 

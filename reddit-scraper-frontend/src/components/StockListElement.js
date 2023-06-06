@@ -23,7 +23,7 @@ function StockListElement(props) {
         <div className="price"> {stock.price}</div>
         <div className={growing ? 'change-green' : 'change-red'}>
           {stock.change}({growing ? '+' : ''}
-          {stock.change_percent})
+          {stock.change_percent}%)
         </div>
         <div>
           <button className="dropdown-button" onClick={handleClick}>

@@ -1,3 +1,2 @@
 from .stock import Stock
-from .stock import StockHistoryElement
-
+from .stock_history_element import StockHistoryElement

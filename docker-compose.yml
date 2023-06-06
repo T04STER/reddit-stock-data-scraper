@@ -4,16 +4,18 @@ services:
     image: python:3.9-alpine
     container_name: flask
     ports:
-      - 8000:5000 # DEBUG ONLY
+      - 5000:5000 # DEBUG ONLY
     depends_on:
       - mongodb
-    links:
-      - mongodb
-  mongodb:
+    networks:
+      - scrapper-network
+  mongodb: # Before first run, add flaskdb mongodb user with same creds as in app/.env
     image: mongo:5.0
     hostname: mongodb
     container_name: mongodb
-    command: mongod --auth
+    command: mongod
+    networks:
+      - scrapper-network
     ports:
       - 27017:27017
     volumes:
@@ -22,3 +24,14 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=db_admin
       - MONGO_INITDB_ROOT_PASSWORD=S3cret
       - MONGO_INITDB_DATABASE=flaskdb
+  react:
+    image: node:20-alpine
+    build: reddit-scraper-frontend
+    hostname: react
+    container_name: react
+    networks:
+      - scrapper-network
+    ports:
+     - 3000:3000
+networks:
+  scrapper-network:

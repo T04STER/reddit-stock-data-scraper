@@ -15,14 +15,4 @@ class Stock(me.Document):
     volume = me.IntField()
     stock_history = me.ListField(me.EmbeddedDocumentField(StockHistoryElement), default=[])
 
-    # TODO: remove it
-    def __repr__(self):
-        return f"" \
-               f"{self.ticker}" \
-               f" ({self.company_name})" \
-               f" price {self.price}" \
-               f" change {self.change}" \
-               f" change percent {self.change_percent}" \
-               f" open {self.open_price}" \
-               f" prev_close {self.previous_close}" \
-               f" volume {self.volume}"
+

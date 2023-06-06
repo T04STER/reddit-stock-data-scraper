@@ -1,7 +1,9 @@
+import logging
 from datetime import datetime, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from praw import Reddit
+from tzlocal import get_localzone
 
 from dot_env_loader import REDDIT_CLIENT_ID, REDDIT_SECRET, \
     REDDIT_USER_AGENT
@@ -17,20 +19,21 @@ def reddit_scraper_config():
             user_agent=REDDIT_USER_AGENT
     )
     subreddits_sources = ["wallstreetbets", 'stocks']
-    post_limit = 5
+    post_limit = 20
     reddit_scrapper = RedditScraper(reddit_client, subreddits_sources, post_limit)
     return reddit_scrapper
 
 
 def aps_scheduler_config(scrap_service: ScrapService):
     scheduler = BackgroundScheduler(daemon=True)
-    scheduler.configure(timezone='Europe/Warsaw')
-
+    scheduler.configure(timezone=get_localzone())
+    logging.basicConfig()
+    logging.getLogger('apscheduler').setLevel(logging.DEBUG)
     scraping_start_date = datetime.now() + timedelta(seconds=10)
     scheduler.add_job(
         scrap_service.insert_most_mentioned_stocks,
         'interval',
-        hours=8,
+        hours=12,
         id='1',
         name='get_and_insert_stocks',
         start_date=scraping_start_date

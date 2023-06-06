@@ -1,3 +1,4 @@
+import logging
 from typing import List
 from models import Stock
 from models.stock_history_element import StockHistoryElement
@@ -14,7 +15,7 @@ class ScrapService:
         most_mentioned: List = self.__reddit_scraper.scrap()
         stocks = self.__scrap_stocks_data(most_mentioned)
         for stock in stocks:
-            existing_stock = Stock.objects(ticker=stock.ticker)
+            existing_stock = Stock.objects.filter(ticker=stock.ticker).first()
             if existing_stock is not None:
                 existing_stock.update(
                     price=stock.price,
@@ -28,6 +29,7 @@ class ScrapService:
                 )
             else:
                 stock.save()
+
 
     def update_stock_data(self) -> None:
         for stock in Stock.objects:

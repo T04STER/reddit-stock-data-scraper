@@ -3,7 +3,7 @@
     width: 100%;
 }
 .StockPage {
-    width: 80%;
+    width: 100%;
     margin-top: 10px;
     font-size: large;
     border-radius: 10px;
@@ -23,6 +23,27 @@
         }
     }
     
+}
+
+.div-loading {
+    margin: 1rem;
+    text-align: center;
+    width: 100%;
+    border-radius: 50px;
+    padding: 20px;
+    
+    .loading-spinner {
+        animation: animate 2s infinite;
+      }
+      
+      @keyframes animate {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(720deg);
+        }
+      }
 }
 
 .div-error {
